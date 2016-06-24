@@ -2,28 +2,30 @@ import matplotlib.pyplot as plt
 from numpy.random import rand
 import numpy as np
 from scipy import stats
-from list_of_players_Elo_G import list_of_players_Elo_G
-from list_of_players_processed import list_of_players_processed
+from list_of_players_bnet1_Elo import list_of_players_bnet1_Elo
 
+#make a new list from the old one with each entry in the form
+#[ELO, WR, ngames]
 data_list = []
 
-for x in range (0, len(list_of_players_processed)):
+for x in range (0, len(list_of_players_bnet1_Elo) ):
     data_point = []
-    data_point.append(list_of_players_processed[x][1][0])
-    data_point.append(float(list_of_players_processed[x][1][4]))
-    data_point.append(list_of_players_processed[x][1][1])
+    data_point.append(list_of_players_bnet1_Elo[x][1][0])
+    data_point.append(float(list_of_players_bnet1_Elo[x][1][4]))
+    data_point.append(list_of_players_bnet1_Elo[x][1][1])
     data_list.append(data_point)
-
 
 print(data_list)
 print(len(data_list))
 
 #####################################################################################
-
+# make lists of ELO (x) and WR (y), plot them
+# accounts with fewer than 20 games
 x = []
 y = []
 
-for z in range (0, len(data_list)):
+#for z in range (0, len(data_list)):
+for z in range (0, 5):
     if data_list[z][2] >= 0 and data_list[z][2] < 20:
         x.append(data_list[z][0])
         y.append(data_list[z][1])
@@ -36,7 +38,6 @@ y = np.array(y)
 color = 'r'
 scale = 1.0
 
-
 plt.legend()
 plt.scatter(x,y, s=scale, c=color, marker = ",", lw=0, alpha = 0.5, label = '1-19 games' + ", n= " +str(len(x)))
 
@@ -47,6 +48,8 @@ plt.plot(x, slope*x +intercept, '-', c = color, label = r_value)
 # plt.legend(('data', 'line-regression r={}'.format(r_value)), 'best')
 
 #############################################################################
+# make lists of ELO (x) and WR (y), plot them
+# accounts with 20-49 games
 
 x = []
 y = []
@@ -72,6 +75,8 @@ plt.plot(x, slope*x +intercept, '-', c = color, label = r_value)
 # plt.legend(('data', 'line-regression r={}'.format(r_value)), 'best')
 
 #########################################################################
+# make lists of ELO (x) and WR (y), plot them
+# accounts with 50-149 games
 
 x = []
 y = []
@@ -97,6 +102,8 @@ slope, intercept, r_value, p_value, std_err = stats.linregress(x,y)
 plt.plot(x, slope*x +intercept, '-', c = color, label = r_value)
 
 ##########################################################################
+# make lists of ELO (x) and WR (y), plot them
+# accounts with 150-500 games
 
 
 x = []
@@ -123,6 +130,8 @@ slope, intercept, r_value, p_value, std_err = stats.linregress(x,y)
 plt.plot(x, slope*x +intercept, '-', c = color, label = r_value)
 
 ##########################################################################
+# make lists of ELO (x) and WR (y), plot them
+# accounts with 500 or more games
 
 x = []
 y = []
