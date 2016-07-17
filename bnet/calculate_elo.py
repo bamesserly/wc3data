@@ -33,7 +33,7 @@ def main():
   # Construct the evaluator
 
   """
-  game_n: check if key exists for player. If not, make an exmpty one. If so, update its entries"
+  game_n: check if key exists for player. If not, make an exmpty one. If so, update its entries
   """
   player_dictionaries = {}
   #for x in range (0, len(list_of_games)):
@@ -81,14 +81,14 @@ def main():
       k_factor2 = k_factor_mid
 
     if player_dictionaries[player1]['ngames'] <= 30 and player_dictionaries[player1]['elo'] < 2300:
-        k_factor1 = k_factor_early
+      k_factor1 = k_factor_early
     if player_dictionaries[player2]['ngames'] <= 30 and player_dictionaries[player2]['elo'] < 2300:
-        k_factor2 = k_factor_early
+      k_factor2 = k_factor_early
 
     if player_dictionaries[player1]['ngames'] <= 5 and player_dictionaries[player1]['elo'] < 1800:
       k_factor1 = k_factor_burst
     if player_dictionaries[player2]['ngames'] <= 5 and player_dictionaries[player1]['elo'] < 1800:
-      k_factor1 = k_factor_burst
+      k_factor2 = k_factor_burst
 
     # Adjust Elo
     if winner == player1:
