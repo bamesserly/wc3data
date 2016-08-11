@@ -2,20 +2,21 @@ import matplotlib.pyplot as plt
 from numpy.random import rand
 import numpy as np
 from scipy import stats
-from list_of_players_bnet1_Elo import list_of_players_bnet1_Elo
+#from list_of_players_bnet1_Elo import list_of_players_bnet1_Elo
+from list_of_elos import list_of_elos
 
 def main():
   data_list = []
 
   #make a new list from the old one with each entry in the form
   #[ELO, WR, ngames]
-  for x in range (0, len(list_of_players_bnet1_Elo) ):
+  for x in range (0, len(list_of_elos) ):
     data_point = []
-    data_point.append(list_of_players_bnet1_Elo[x][1][0])
-    data_point.append(float(list_of_players_bnet1_Elo[x][1][4]))
-    data_point.append(list_of_players_bnet1_Elo[x][1][1])
+    #elo, WR, ngames
+    data_point.append(list_of_elos[x][1]['elo'])
+    data_point.append(list_of_elos[x][1]['winrate'])
+    data_point.append(list_of_elos[x][1]['ngames'])
     data_list.append(data_point)
-
   #print(data_list)
   print("number of accounts scored = " + str(len(data_list)) )
 
@@ -80,6 +81,8 @@ def make_scatter_plot(x, y, color='r', legend_label='', scale=1.0):
   slope, intercept, r_value, p_value, std_err = stats.linregress(x,y)
   # plt.legend(('data', 'line-regression r={}'.format(r_value)), 'best')
   plt.plot(x, slope*x +intercept, '-', c = color, label = r_value)
+
+
 
 if __name__ == "__main__":
   main()

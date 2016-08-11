@@ -13,60 +13,84 @@ game_fields = ['date_time', 'winning_player',
 races = ["Orc","Human","Night","Undead"]
 
 def main():
-  read_games = 0
+  good_games = 0
   total_games = 0
+  short_games = 0
+  bugged_games = 0
   game_list = []
 
-  Wfile = open("games_list.py", "w")
+  Wfile = open("list_of_games.py", "w")
 
   #Loop file lines
-  for line in fileinput.input(glob.glob("/Users/Ben/Desktop/Misc_Docs/wcscans/processedFiles/Solo/game331800100*.txt")):
+  for line in fileinput.input(glob.glob("/Users/Ben/Desktop/Misc_Docs/wcscans/processedFiles/Solo/game*.txt")):
+    #print fileinput.filename()
+
+    #Make sure game is greater than zero mins
+    if fileinput.filelineno()==5: 
+      if "Game Length: 0 minutes" in line:
+        #print "Game Length Zero"
+        fileinput.nextfile()
+        short_games += 1
+      if "Game Length: 1 minutes" in line:
+        #print "Game Length One"
+        fileinput.nextfile()
+        short_games += 1
+
+    #Make sure game is solo
+    if fileinput.filelineno()==4:
+      if "Solo" not in line:
+        print "Not Solo"
+        fileinput.nextfile()
+
+
     if fileinput.isfirstline(): # First line, initialize
       #print fileinput.filename()
       game_info = {}
       game_info.fromkeys(game_fields)
       total_games += 1
-      read_games += 1
 
     #Get game date/time
     if fileinput.filelineno()==2:
       game_info['date_time'] = get_date_time(line)
 
-    #Make sure game is solo
-    if fileinput.filelineno()==4 and not line.find("Solo")>0:
-      print "Not Solo"
-      read_games -= 1
-      fileinput.nextfile()
-
-    #player1 name, race, level
-    if fileinput.filelineno()==7:
+    #player names, races, levels, winner
+    try:
+      if fileinput.filelineno()==7:
         game_info['player1_name'] = get_player_name(line)
         game_info['player1_race'] = get_player_race(line)
-    if fileinput.filelineno()==8:
-      game_info['player1_level'] = get_player_level(line)
 
-    #player2 name, race, level
-    if fileinput.filelineno()==10:
-      game_info['player2_name'] = get_player_name(line)
-      game_info['player2_race'] = get_player_race(line)
-    if fileinput.filelineno()==11:
-      game_info['player2_level'] = get_player_level(line)
+      if fileinput.filelineno()==8:
+        game_info['player1_level'] = get_player_level(line)
 
-    #Winning Player
-    if fileinput.filelineno()==12:
-      game_info['winning_player'] = get_winning_player(line, game_info)
+      if fileinput.filelineno()==10:
+        game_info['player2_name'] = get_player_name(line)
+        game_info['player2_race'] = get_player_race(line)
+
+      if fileinput.filelineno()==11:
+        game_info['player2_level'] = get_player_level(line)
+
+      if fileinput.filelineno()==12:
+        game_info['winning_player'] = get_winning_player(line, game_info)
+
+    except:
+      bugged_games += 1
+      fileinput.nextfile()
 
     #finalize
     if fileinput.filelineno()>12:
       if any (field not in game_info for field in game_fields):
         print "One of the fields for this game is empty, failed to read game."
-        read_games -= 1
         fileinput.nextfile()
       else:
+        good_games += 1
         game_list.append(game_info)
+        if good_games % 1000 == 0:
+          print "Scanned over " + str(good_games) + " games"
         fileinput.nextfile()
 
-  print "Read games = " + str(read_games)
+  print "Short games not counted = " + str(short_games)
+  print "Bugged games not counted = " + str(bugged_games)
+  print "Good games = " + str(good_games)
   print "Total games = " + str(total_games)
   #print "\n".join(str(v) for v in game_list)
   Wfile.write("list_of_games = " + str(game_list))
@@ -83,7 +107,8 @@ def get_player_race(line):
 
 def get_date_time(line):
   date_time = (" ").join(line.split(" ")[4:7])
-  date_time = time.strftime("%d-%m-%Y %H:%M", time.strptime(date_time,'%m/%d/%Y %I:%M:%S %p'))
+  date_time = time.strftime("%d-%m-%Y %H:%M", 
+                            time.strptime(date_time,'%m/%d/%Y %I:%M:%S %p'))
   return date_time
 
 def get_winning_player(line, game_info):
