@@ -1,20 +1,31 @@
 import operator
 import numpy as np
 
+K_FACTOR_BURST = 100
+K_FACTOR_EARLY = 48
+K_FACTOR_MID   = 36
+K_FACTOR_LATE  = 24
+
 # player_dictionary format: 
 # {'playerXname': player_dictionary, 'playerYname' : player_dictionary, ...}
 
 def main():
+  #from list_of_games_short import list_of_games
   from list_of_games import list_of_games
 
-  list_of_elos = open('list_of_elos', 'w+')
+  #list_of_elos = open('list_of_elos', 'w+')
+  list_of_elos = open('cache.txt', 'w+')
 
   # Consolodate all games
   print(str(len(list_of_games)) + " games imported. Refining and sorting by date...")
 
-  # Remove duplicates, remove games with a 'missing player', and sort list of games by date
-  list_of_games = [dict(tupleized) for tupleized in set(tuple(item.items()) for item in list_of_games)]
+  # Remove duplicates, remove games with a 'missing player'
+  # sort list of games by date
+  list_of_games = [ dict(tupleized) for tupleized in set(
+                              tuple(item.items()) for item in list_of_games)]
   list_of_games = sorted(list_of_games, key=lambda k: k['date_time'])  
+
+  #print list_of_games
   
   player_name = str()
   player_elo = int()
@@ -31,73 +42,31 @@ def main():
     winner = x['winning_player']
     player1 = x['player1_name']
     player2 = x['player2_name']
+    game_date_time = x['date_time']
 
-    if player1 in player_dictionaries:
-      temp_player1_elo = player_dictionaries[player1]['elo']
-    else:
-      player_dictionaries[player1] = {'elo': starting_elo,'ngames':0,'wins':0,'losses':0,'winrate':0.}
-      temp_player1_elo = player_dictionaries[player1]['elo']
+    if not player1 in player_dictionaries:
+      player_dictionaries[player1] = {'tag':player1, 'elo':starting_elo,
+                                      'ngames':0,'wins':0,'losses':0,'winrate':0.,
+                                      'most_recent_game_time': game_date_time}
+    elif max((player_dictionaries[player1]['most_recent_game_time'],game_date_time)) is not game_date_time:
+      print "WARNING P1'S MOST RECENT GAME AFTER CURRENT GAME"
 
-    if player2 in player_dictionaries:
-      temp_player2_elo = player_dictionaries[player2]['elo']
-    else:
-      player_dictionaries[player2] = {'elo': starting_elo,'ngames':0,'wins':0,'losses':0,'winrate':0.}
-      temp_player2_elo = player_dictionaries[player2]['elo']
+    if not player2 in player_dictionaries:
+      player_dictionaries[player2] = {'tag':player2, 'elo':starting_elo,
+                                      'ngames':0,'wins':0,'losses':0,'winrate':0.,
+                                      'most_recent_game_time': game_date_time}
+    elif max((player_dictionaries[player2]['most_recent_game_time'],game_date_time)) is not game_date_time:
+      print "WARNING P2'S MOST RECENT GAME AFTER CURRENT GAME"
 
-    quotientA = 10 ** (temp_player1_elo / 400)
-    quotientB = 10 ** (temp_player2_elo / 400)
-    expectationA = quotientA / (quotientA + quotientB)
-    expectationB = quotientB / (quotientA + quotientB)
+    (new_player1_elo, new_player2_elo) = update_elos(player_dictionaries[player1],
+                                                   player_dictionaries[player2],
+                                                   winner)
 
-    # Manage variable k factor
-    k_factor_burst = 100
-    k_factor_early = 48
-    k_factor_mid = 36
-    k_factor_late = 24
+    print new_player1_elo
+    print new_player2_elo
 
-    k_factor1 = k_factor_late
-    k_factor2 = k_factor_late
-
-    if player_dictionaries[player1]['elo'] < 2400:
-      k_factor1 = k_factor_mid
-    if player_dictionaries[player2]['elo'] < 2400:
-      k_factor2 = k_factor_mid
-
-    if player_dictionaries[player1]['ngames'] <= 30 and player_dictionaries[player1]['elo'] < 2300:
-      k_factor1 = k_factor_early
-    if player_dictionaries[player2]['ngames'] <= 30 and player_dictionaries[player2]['elo'] < 2300:
-      k_factor2 = k_factor_early
-
-    if player_dictionaries[player1]['ngames'] <= 5 and player_dictionaries[player1]['elo'] < 1800:
-      k_factor1 = k_factor_burst
-    if player_dictionaries[player2]['ngames'] <= 5 and player_dictionaries[player1]['elo'] < 1800:
-      k_factor1 = k_factor_burst
-
-    # Adjust Elo
-    if winner == player1:
-      temp_player1_elo = temp_player1_elo + k_factor1 * (1 - expectationA)
-      temp_player2_elo = temp_player2_elo + k_factor2 * (0 - expectationB)
-      #print player1 + " beat " + player2 + " on " + x['date_time']
-    elif winner == player2:
-      temp_player1_elo = temp_player1_elo + k_factor1 * (0 - expectationA)
-      temp_player2_elo = temp_player2_elo + k_factor2 * (1 - expectationB)
-      #print player2 + " beat " + player1 + " on " + x['date_time']
-    player_dictionaries[player1]['elo'] = round((temp_player1_elo),2)
-    player_dictionaries[player2]['elo'] = round((temp_player2_elo),2)
-
-    # Adjust W/L/WR
-    player_dictionaries[player1]['ngames'] += 1
-    player_dictionaries[player2]['ngames'] += 1
-    if winner == player1:
-      player_dictionaries[player1]['wins'] += 1
-      player_dictionaries[player2]['losses'] += 1
-      player_dictionaries[player1]['winrate'] = (player_dictionaries[player1]['wins'] / float(player_dictionaries[player1]['wins'] + player_dictionaries[player1]['losses']))*100
-      player_dictionaries[player2]['winrate'] = (player_dictionaries[player2]['wins'] / float(player_dictionaries[player2]['wins'] + player_dictionaries[player2]['losses']))*100
-    if winner == player2:
-      player_dictionaries[player2]['wins'] += 1
-      player_dictionaries[player1]['losses'] += 1
-      player_dictionaries[player1]['winrate'] = (player_dictionaries[player1]['wins'] / float(player_dictionaries[player1]['wins'] + player_dictionaries[player1]['losses']))*100
-      player_dictionaries[player2]['winrate'] = (player_dictionaries[player2]['wins'] / float(player_dictionaries[player2]['wins'] + player_dictionaries[player2]['losses']))*100
+    player_dictionaries[player1]['elo'] = round((new_player1_elo),2)
+    player_dictionaries[player2]['elo'] = round((new_player2_elo),2)
 
   elo_list = []
   for x in player_dictionaries:
@@ -112,6 +81,56 @@ def main():
 
   list_of_elos.write(str(elo_sorted_player_list))
   list_of_elos.close()
+
+def update_elos(P1dict, P2dict, winner):
+  temp_P1_elo = P1dict['elo']
+  temp_P2_elo = P2dict['elo']
+
+  quotientA = 10 ** (temp_P1_elo / 400)
+  quotientB = 10 ** (temp_P2_elo / 400)
+  expectationA = quotientA / (quotientA + quotientB)
+  expectationB = quotientB / (quotientA + quotientB)
+
+  k_factor1 = set_k_factor(P1dict['elo'], P1dict['ngames'])
+  k_factor2 = set_k_factor(P2dict['elo'], P2dict['ngames'])
+
+  # Adjust Elo
+  if winner == P1dict['tag']:
+    temp_P1_elo = temp_P1_elo + k_factor1 * (1 - expectationA)
+    temp_P2_elo = temp_P2_elo + k_factor2 * (0 - expectationB)
+  elif winner == P2dict['tag']:
+    temp_P1_elo = temp_P1_elo + k_factor1 * (0 - expectationA)
+    temp_P2_elo = temp_P2_elo + k_factor2 * (1 - expectationB)
+
+  return (temp_P1_elo, temp_P2_elo)
+
+def adjust_W_L():
+  # Adjust W/L/WR
+  player1dict['ngames'] += 1
+  player2dict['ngames'] += 1
+  if winner == player1:
+    player1dict['wins'] += 1
+    player2dict['losses'] += 1
+    player1dict['winrate'] = (player1dict['wins'] / float(player1dict['wins'] + player1dict['losses']))*100
+    player2dict['winrate'] = (player2dict['wins'] / float(player2dict['wins'] + player2dict['losses']))*100
+  if winner == player2:
+    player2dict['wins'] += 1
+    player1dict['losses'] += 1
+    player1dict['winrate'] = (player1dict['wins'] / float(player1dict['wins'] + player1dict['losses']))*100
+    player2dict['winrate'] = (player2dict['wins'] / float(player2dict['wins'] + player2dict['losses']))*100
+
+def set_k_factor(elo, ngames):
+  k_factor = K_FACTOR_LATE
+  if elo < 2400:
+    k_factor = K_FACTOR_MID
+
+  if ngames <= 30 and elo < 2300:
+    k_factor1 = K_FACTOR_EARLY
+
+  if ngames <= 5 and elo < 1800:
+    k_factor1 = K_FACTOR_BURST
+
+  return k_factor
 
 if __name__ == "__main__":
   main()
