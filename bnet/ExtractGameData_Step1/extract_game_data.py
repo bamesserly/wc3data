@@ -19,7 +19,7 @@ def main():
   bugged_games = 0
   game_list = []
 
-  Wfile = open("list_of_games.py", "w")
+  Wfile = open("list_of_games", "w")
 
   #Loop file lines
   for line in fileinput.input(glob.glob("/Users/Ben/Desktop/Misc_Docs/wcscans/processedFiles/Solo/game*.txt")):
@@ -117,7 +117,7 @@ def get_winning_player(line, game_info):
   elif (line.find("Loss")>0):
     return game_info['player1_name']
   else:
-    return None
+    raise ValueError('Couldnt get winning player')
 
 if __name__ == "__main__":
   main()

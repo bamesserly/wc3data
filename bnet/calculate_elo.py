@@ -1,5 +1,7 @@
 import operator
 import numpy as np
+import csv
+from datetime import date
 
 K_FACTOR_BURST = 100
 K_FACTOR_EARLY = 48
@@ -10,11 +12,9 @@ K_FACTOR_LATE  = 24
 # {'playerXname': player_dictionary, 'playerYname' : player_dictionary, ...}
 
 def main():
-  #from list_of_games_short import list_of_games
   from list_of_games import list_of_games
 
-  #list_of_elos = open('list_of_elos', 'w+')
-  list_of_elos = open('cache.txt', 'w+')
+  list_of_elos = open('list_of_elos.py', 'w+')
 
   # Consolodate all games
   print(str(len(list_of_games)) + " games imported. Refining and sorting by date...")
@@ -26,16 +26,7 @@ def main():
   list_of_games = sorted(list_of_games, key=lambda k: k['date_time'])  
 
   #print list_of_games
-  
-  player_name = str()
-  player_elo = int()
-  player_game_count = int()
-  player_dictionary = {}
-  sorted_player_dictionary = {}
 
-  """
-  game_n: check if key exists for player. If not, make an empty one. If so, update its entries.
-  """
   player_dictionaries = {}
   for x in list_of_games:
     starting_elo = 1500.
@@ -49,29 +40,36 @@ def main():
                                       'ngames':0,'wins':0,'losses':0,'winrate':0.,
                                       'most_recent_game_time': game_date_time}
     elif max((player_dictionaries[player1]['most_recent_game_time'],game_date_time)) is not game_date_time:
-      print "WARNING P1'S MOST RECENT GAME AFTER CURRENT GAME"
+      raise Exception("P1'S MOST RECENT GAME IS AFTER CURRENT GAME")
 
     if not player2 in player_dictionaries:
       player_dictionaries[player2] = {'tag':player2, 'elo':starting_elo,
                                       'ngames':0,'wins':0,'losses':0,'winrate':0.,
                                       'most_recent_game_time': game_date_time}
     elif max((player_dictionaries[player2]['most_recent_game_time'],game_date_time)) is not game_date_time:
-      print "WARNING P2'S MOST RECENT GAME AFTER CURRENT GAME"
+      raise Exception("P2'S MOST RECENT GAME IS AFTER CURRENT GAME")
 
-    (new_player1_elo, new_player2_elo) = update_elos(player_dictionaries[player1],
-                                                   player_dictionaries[player2],
-                                                   winner)
 
-    print new_player1_elo
-    print new_player2_elo
+    (new_player1_elo, new_player2_elo) = calculate_new_elos(
+             player_dictionaries[player1], player_dictionaries[player2], winner)
 
     player_dictionaries[player1]['elo'] = round((new_player1_elo),2)
     player_dictionaries[player2]['elo'] = round((new_player2_elo),2)
 
+    adjust_W_L(player_dictionaries[player1],player_dictionaries[player2],winner)
+   
+    player_dictionaries[player1]['most_recent_game_time'] = game_date_time
+    player_dictionaries[player2]['most_recent_game_time'] = game_date_time
+    
+
   elo_list = []
+  player_dict_list = []
   for x in player_dictionaries:
     elo_list.append(player_dictionaries[x]['elo'])
-    
+    player_dict_list.append(player_dictionaries[x])
+
+  make_elo_spreadsheet(player_dict_list)
+
   y = int()
   for y in range (100, -1, -10):
     p = np.percentile(elo_list, y, axis=None, out=None, overwrite_input=False, interpolation='linear')
@@ -82,7 +80,7 @@ def main():
   list_of_elos.write(str(elo_sorted_player_list))
   list_of_elos.close()
 
-def update_elos(P1dict, P2dict, winner):
+def calculate_new_elos(P1dict, P2dict, winner):
   temp_P1_elo = P1dict['elo']
   temp_P2_elo = P2dict['elo']
 
@@ -104,20 +102,23 @@ def update_elos(P1dict, P2dict, winner):
 
   return (temp_P1_elo, temp_P2_elo)
 
-def adjust_W_L():
-  # Adjust W/L/WR
-  player1dict['ngames'] += 1
-  player2dict['ngames'] += 1
-  if winner == player1:
-    player1dict['wins'] += 1
-    player2dict['losses'] += 1
-    player1dict['winrate'] = (player1dict['wins'] / float(player1dict['wins'] + player1dict['losses']))*100
-    player2dict['winrate'] = (player2dict['wins'] / float(player2dict['wins'] + player2dict['losses']))*100
-  if winner == player2:
-    player2dict['wins'] += 1
-    player1dict['losses'] += 1
-    player1dict['winrate'] = (player1dict['wins'] / float(player1dict['wins'] + player1dict['losses']))*100
-    player2dict['winrate'] = (player2dict['wins'] / float(player2dict['wins'] + player2dict['losses']))*100
+def adjust_W_L(P1dict,P2dict,winner):
+  if winner == P1dict['tag']:
+    P1dict['ngames'] += 1
+    P2dict['ngames'] += 1
+    P1dict['wins'] += 1
+    P2dict['losses'] += 1
+    P1dict['winrate'] = round(P1dict['wins'] / float(P1dict['wins'] + P1dict['losses']),4)
+    P2dict['winrate'] = round(P2dict['wins'] / float(P2dict['wins'] + P2dict['losses']),4)
+  elif winner == P2dict['tag']:
+    P1dict['ngames'] += 1
+    P2dict['ngames'] += 1
+    P2dict['wins'] += 1
+    P1dict['losses'] += 1
+    P1dict['winrate'] = round(P1dict['wins'] / float(P1dict['wins'] + P1dict['losses']),4)
+    P2dict['winrate'] = round(P2dict['wins'] / float(P2dict['wins'] + P2dict['losses']),4)
+  else:
+    print "WARNING in adjust_W_L: winner is neither player1 nor player 2"
 
 def set_k_factor(elo, ngames):
   k_factor = K_FACTOR_LATE
@@ -131,6 +132,17 @@ def set_k_factor(elo, ngames):
     k_factor1 = K_FACTOR_BURST
 
   return k_factor
+
+def make_elo_spreadsheet(player_dict_list):
+  today = (date.today()).strftime("%y%m%d")
+  spreadsheet_name = "EloSpreadSheet_{0}.csv".format(today)
+  with open(spreadsheet_name, 'w') as csvfile:
+    #header = ['Elos {0}'.format(today)]
+    fieldnames = ['tag', 'elo', 'ngames', 'wins','losses','winrate','most_recent_game_time']
+    writer = csv.DictWriter(csvfile, fieldnames = fieldnames)
+    #writer.writer.writerow(header)
+    writer.writer.writerow(fieldnames)
+    X = [writer.writerow(dict) for dict in player_dict_list]
 
 if __name__ == "__main__":
   main()
