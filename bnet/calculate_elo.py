@@ -2,6 +2,7 @@ import operator
 import numpy as np
 import csv
 from datetime import date
+import datetime
 
 K_FACTOR_BURST = 100
 K_FACTOR_EARLY = 48
@@ -9,7 +10,7 @@ K_FACTOR_MID   = 36
 K_FACTOR_LATE  = 24
 
 # player_dictionary format: 
-# {'playerXname': player_dictionary, 'playerYname' : player_dictionary, ...}
+# {'playerXname': {player_dictionary}, 'playerYname' : {player_dictionary}, ...}
 
 def main():
   from list_of_games import list_of_games
@@ -17,15 +18,14 @@ def main():
   list_of_elos = open('list_of_elos.py', 'w+')
 
   # Consolodate all games
-  print(str(len(list_of_games)) + " games imported. Refining and sorting by date...")
+  print(str(len(list_of_games)) + " games imported. Refine and sort by date...")
 
   # Remove duplicates, remove games with a 'missing player'
-  # sort list of games by date
   list_of_games = [ dict(tupleized) for tupleized in set(
                               tuple(item.items()) for item in list_of_games)]
-  list_of_games = sorted(list_of_games, key=lambda k: k['date_time'])  
-
-  #print list_of_games
+  # sort list of games by date
+  list_of_games = sorted(list_of_games, key=lambda k: 
+      datetime.datetime.strptime(k['date_time'], '%d-%m-%Y %H:%M'))  
 
   player_dictionaries = {}
   for x in list_of_games:
@@ -39,19 +39,20 @@ def main():
       player_dictionaries[player1] = {'tag':player1, 'elo':starting_elo,
                                       'ngames':0,'wins':0,'losses':0,'winrate':0.,
                                       'most_recent_game_time': game_date_time}
-    elif max((player_dictionaries[player1]['most_recent_game_time'],game_date_time)) is not game_date_time:
+    elif (datetime.datetime.strptime(game_date_time, '%d-%m-%Y %H:%M') < 
+        datetime.datetime.strptime(player_dictionaries[player1]['most_recent_game_time'],'%d-%m-%Y %H:%M')):
       raise Exception("P1'S MOST RECENT GAME IS AFTER CURRENT GAME")
 
     if not player2 in player_dictionaries:
       player_dictionaries[player2] = {'tag':player2, 'elo':starting_elo,
                                       'ngames':0,'wins':0,'losses':0,'winrate':0.,
                                       'most_recent_game_time': game_date_time}
-    elif max((player_dictionaries[player2]['most_recent_game_time'],game_date_time)) is not game_date_time:
+    elif (datetime.datetime.strptime(game_date_time, '%d-%m-%Y %H:%M') < 
+        datetime.datetime.strptime(player_dictionaries[player2]['most_recent_game_time'],'%d-%m-%Y %H:%M')):
       raise Exception("P2'S MOST RECENT GAME IS AFTER CURRENT GAME")
 
-
     (new_player1_elo, new_player2_elo) = calculate_new_elos(
-             player_dictionaries[player1], player_dictionaries[player2], winner)
+        player_dictionaries[player1], player_dictionaries[player2], winner)
 
     player_dictionaries[player1]['elo'] = round((new_player1_elo),2)
     player_dictionaries[player2]['elo'] = round((new_player2_elo),2)
@@ -72,10 +73,12 @@ def main():
 
   y = int()
   for y in range (100, -1, -10):
-    p = np.percentile(elo_list, y, axis=None, out=None, overwrite_input=False, interpolation='linear')
+    p = np.percentile(elo_list, y, axis=None, out=None, overwrite_input=False, 
+        interpolation='linear')
     print (str(p) + " = " + str(y) + "th percentile")
 
-  elo_sorted_player_list = sorted(player_dictionaries.items(), key=operator.itemgetter(1,0), reverse = True)
+  elo_sorted_player_list = sorted(player_dictionaries.items(), 
+      key=operator.itemgetter(1,0), reverse = True)
 
   list_of_elos.write(str(elo_sorted_player_list))
   list_of_elos.close()
