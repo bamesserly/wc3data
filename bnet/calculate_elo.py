@@ -126,10 +126,10 @@ def set_k_factor(elo, ngames):
     k_factor = K_FACTOR_MID
 
   if ngames <= 30 and elo < 2300:
-    k_factor1 = K_FACTOR_EARLY
+    k_factor = K_FACTOR_EARLY
 
   if ngames <= 5 and elo < 1800:
-    k_factor1 = K_FACTOR_BURST
+    k_factor = K_FACTOR_BURST
 
   return k_factor
 
