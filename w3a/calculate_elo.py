@@ -17,6 +17,7 @@ def main():
   from list_of_games import list_of_games
 
   list_of_elos = open('list_of_elos.py', 'w+')
+  dict_of_elos = open('dict_of_elos.py', 'w+')
 
   # Consolodate all games
   print(str(len(list_of_games)) + " games imported. Refine and sort by date...")
@@ -90,7 +91,9 @@ def main():
   print "max elo = " + str(elo_sorted_player_list[0]) 
   print "min elo = " + str(elo_sorted_player_list[-1])
 
-  list_of_elos.write(str(elo_sorted_player_list))
+  dict_of_elos.write("dict_of_elos = " + str(player_dictionaries))
+  dict_of_elos.close()
+  list_of_elos.write("list_of_elos = " + str(elo_sorted_player_list))
   list_of_elos.close()
 
 def calculate_new_elos(P1dict, P2dict, winner):
