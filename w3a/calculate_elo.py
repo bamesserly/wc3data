@@ -3,6 +3,7 @@ import numpy as np
 import csv
 from datetime import date
 import datetime
+import time
 
 K_FACTOR_BURST = 100
 K_FACTOR_EARLY = 48
@@ -37,21 +38,22 @@ def main():
     player1 = x['player1_name']
     player2 = x['player2_name']
     game_date_time = x['date_time']
+    game_date_time = time.strftime("%Y-%m-%d %H:%M", time.strptime(game_date_time,"%d-%m-%Y %H:%M"))
 
     if not player1 in player_dictionaries:
       player_dictionaries[player1] = {'tag':player1, 'elo':starting_elo,
                                       'ngames':0,'wins':0,'losses':0,'winrate':0.,
                                       'most_recent_game_time': game_date_time}
-    elif (datetime.datetime.strptime(game_date_time, '%d-%m-%Y %H:%M') < 
-        datetime.datetime.strptime(player_dictionaries[player1]['most_recent_game_time'],'%d-%m-%Y %H:%M')):
+    elif (datetime.datetime.strptime(game_date_time, '%Y-%m-%d %H:%M') < 
+        datetime.datetime.strptime(player_dictionaries[player1]['most_recent_game_time'],'%Y-%m-%d %H:%M')):
       raise Exception("P1'S MOST RECENT GAME IS AFTER CURRENT GAME")
 
     if not player2 in player_dictionaries:
       player_dictionaries[player2] = {'tag':player2, 'elo':starting_elo,
                                       'ngames':0,'wins':0,'losses':0,'winrate':0.,
                                       'most_recent_game_time': game_date_time}
-    elif (datetime.datetime.strptime(game_date_time, '%d-%m-%Y %H:%M') < 
-        datetime.datetime.strptime(player_dictionaries[player2]['most_recent_game_time'],'%d-%m-%Y %H:%M')):
+    elif (datetime.datetime.strptime(game_date_time, '%Y-%m-%d %H:%M') < 
+        datetime.datetime.strptime(player_dictionaries[player2]['most_recent_game_time'],'%Y-%m-%d %H:%M')):
       raise Exception("P2'S MOST RECENT GAME IS AFTER CURRENT GAME")
 
     (new_player1_elo, new_player2_elo) = calculate_new_elos(
