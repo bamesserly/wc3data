@@ -31,6 +31,8 @@ def main():
   print "after removing duplicates..."
   print "length of list of games = " + str(len(list_of_games))
 
+  #print list_of_games
+
   player_dictionaries = {}
   for x in list_of_games:
     starting_elo = 1500.
@@ -59,8 +61,8 @@ def main():
     (new_player1_elo, new_player2_elo) = calculate_new_elos(
         player_dictionaries[player1], player_dictionaries[player2], winner)
 
-    player_dictionaries[player1]['elo'] = round((new_player1_elo),2)
-    player_dictionaries[player2]['elo'] = round((new_player2_elo),2)
+    player_dictionaries[player1]['elo'] = round((new_player1_elo),3)
+    player_dictionaries[player2]['elo'] = round((new_player2_elo),3)
 
     adjust_W_L(player_dictionaries[player1],player_dictionaries[player2],winner)
    
@@ -85,6 +87,9 @@ def main():
   elo_sorted_player_list = sorted(player_dictionaries.items(), 
       key=operator.itemgetter(1,0), reverse = True)
 
+  print "max elo = " + str(elo_sorted_player_list[0]) 
+  print "min elo = " + str(elo_sorted_player_list[-1])
+
   list_of_elos.write(str(elo_sorted_player_list))
   list_of_elos.close()
 
@@ -108,7 +113,7 @@ def calculate_new_elos(P1dict, P2dict, winner):
     temp_P1_elo = temp_P1_elo + k_factor1 * (0 - expectationA)
     temp_P2_elo = temp_P2_elo + k_factor2 * (1 - expectationB)
 
-  return (temp_P1_elo, temp_P2_elo)
+  return (round(temp_P1_elo,6), round(temp_P2_elo,6))
 
 def adjust_W_L(P1dict,P2dict,winner):
   if winner == P1dict['tag']:
