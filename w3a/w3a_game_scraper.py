@@ -1,3 +1,10 @@
+# 1. TODO functionalize
+# 2. TODO while checking each game, add both players to all_list
+# after the loop over existing accounts, make a new list:
+# new_accts_list = all_list - existing_accounts
+# then, scrape over that list.
+# 3. TODO check whether reached the last page and 
+# set keep_searching_for_games to false
 import requests
 from bs4 import BeautifulSoup
 from dict_of_elos import dict_of_elos
@@ -10,20 +17,24 @@ date_of_last_scan = '19-06-2016 00:00'
 game_fields = ['date_time', 'winning_player','player1_name','player2_name']
 part_list_of_games = []
 progress_notifier = []
-
 list_of_new_games = []
 
+# loop existing players
 for tag in dict_of_elos:
   print tag
   most_recent_game_time = dict_of_elos[tag]['most_recent_game_time']
   page = 0
   keep_searching_for_games = True
   n_new_games_scanned = 0
+  # keep incrementing games and pages until:
+  # 1. we find the game that we last scanned
+  # 2. get to a page with no game data (TODO) 
   while (keep_searching_for_games):
     url = "http://tft.w3arena.net/profile/{0}/?p={1}".format(tag, page)
     r = requests.get(url)
     soup = BeautifulSoup(r.content, 'html.parser')
     page_data = soup.find_all("table", {"class": "StyledTable"})
+    # TODO: maybe with itertools combine these into a single loop
     for item in page_data:
       for x in range (3, len(item)):
         try:
@@ -39,19 +50,25 @@ for tag in dict_of_elos:
           continue
 
         # Check if we have caught up to the most recent game
-        if(datetime.datetime.strptime(most_recent_game_time, '%Y-%m-%d %H:%M') >= datetime.datetime.strptime(game_results[4], "%d-%m-%Y %H:%M")):
+        # if so, break out of both for loops and the while loop
+        if(datetime.datetime.strptime(most_recent_game_time, '%Y-%m-%d %H:%M') >= 
+            datetime.datetime.strptime(game_results[4], "%d-%m-%Y %H:%M")):
           if n_new_games_scanned > 0:
             print "    most recent game " + str(most_recent_game_time)
             print "    new games retreived = " + str(n_new_games_scanned)
           keep_searching_for_games = False
           break #for x in range (3, len(item))
+        # TODO make sure this is breaking out of both for loops
 
-        # Check if this game is before we last scanned (so we missed it)
-        if( datetime.datetime.strptime(game_results[4], "%d-%m-%Y %H:%M") < datetime.datetime.strptime(date_of_last_scan, "%d-%m-%Y %H:%M")): 
+        # Check if this game is before we last scanned (so we missed it the 1st time)
+        # TODO do something about this case?
+        if( datetime.datetime.strptime(game_results[4], "%d-%m-%Y %H:%M") < 
+              datetime.datetime.strptime(date_of_last_scan, "%d-%m-%Y %H:%M")): 
           print "  WARNING: GAME(S) AFTER MOST RECENT ON RECORD BUT BEFORE 6-19-2016"
           print "    current game     " + str(datetime.datetime.strptime(game_results[4], "%d-%m-%Y %H:%M"))
 
         # Get the game info and save it
+        # TODO make second list
         game_dict = {}
         game_dict.fromkeys(game_fields)
         game_dict['date_time'] = game_results[4].encode("utf-8")
@@ -67,7 +84,9 @@ for tag in dict_of_elos:
 
         n_new_games_scanned += 1
         list_of_new_games.append(game_dict)
+
       # Got to the end of the page, going to the next one
+      # TODO make sure this is breaking out of both for loops
       else:
         print "  End page. Going to next page: " + str(page+1)
         page +=1
