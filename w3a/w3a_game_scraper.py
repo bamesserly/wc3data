@@ -20,9 +20,8 @@ progress_notifier = []
 game_fields = ['date_time', 'winning_player','player1_name','player2_name']
 
 def main():
-  from dict_of_elos_short2 import dict_of_elos
-  set_of_existing_players = set(list(dict_of_elos.keys()))
-  tags_total = len(set_of_existing_players)
+  from data.list_of_existing_players import existing_players
+  tags_total = len(existing_players)
   print "Analyzing ", tags_total, "players..."
 
   list_of_new_games = []
@@ -34,39 +33,46 @@ def main():
 
   # loop existing players
   # big speed gain by not looping over the dict
-  for tag in set_of_existing_players:
+  for tag in existing_players:
     tags_analyzed += 1
-    if tags_analyzed % 5 == 0:
+    if tags_analyzed % 100 == 0:
       print tags_analyzed, "tags analyzed"
-      #print "new games found before last scan =", missed_games
       t1 = time.time()
       print "     time elapsed", t1-t0
-      print "     scrape time", scrape_time
+      #print "     scrape time", scrape_time
       #100*round(tags_analyzed/float(tags_total),3)
+
+    #Some variables for this tag
     LGOR_time = dict_of_elos[tag]['most_recent_game_time']
     LGOR_time = datetime.datetime.strptime(LGOR_time, '%Y-%m-%d %H:%M')
     page = 0
-    keep_searching_for_games = True
     n_new_games_found = 0
+    keep_searching_for_games = True
+
     # keep incrementing games and pages until:
     # 1. we find the game that we last scanned
     # 2. get to a page with no game data (TODO) 
     while (keep_searching_for_games):
       url = "http://tft.w3arena.net/profile/{0}/?p={1}".format(tag, page)
-      t2 = time.time()
+      #t2 = time.time()
       r = requests.get(url)
-      t3 = time.time()
+      #t3 = time.time()
       soup = BeautifulSoup(r.content, 'html.parser')
       games_on_page = soup.find("table", {"class": "StyledTable"})
-      scrape_time += t3-t2 #yeah, 99.98% of the running time is scrape time, mostly in that requests.get(url) command
-      for game_i in range(0, len(games_on_page)):
+      #scrape_time += t3-t2 #yeah, 99.98% of the running time is scrape time, mostly in that requests.get(url) command
+      try:
+        number_of_games_on_page = len(games_on_page)
+      except TypeError:
+        keep_searching_for_games = False
+        print "game on page length is zero. Tag is", tag
+        break
+      for game_i in range(0, number_of_games_on_page):
         try:
           game_results = get_game_results(games_on_page, game_i)
         except AttributeError:
           #there are a few newline characters in games_on_page.contents[game_i]
           #test: games_on_page.contents[game_i].isspace()
           continue
-
 
         if game_results[1] != "1on1":
           continue
@@ -91,11 +97,10 @@ def main():
         elif current_game_time > LGOR_time:
           game_dict = {}
           game_dict = make_new_game_dict(tag, game_results, set_of_new_players)
-          list_of_new_games.append(game_dict)
+          #list_of_new_games.append(game_dict)
           n_new_games_found += 1
           if date_of_last_scan > current_game_time:
             missed_games += 1
-          
 
       # Got to the end of the page, going to the next one
       # Following statement is eval-ed only if loop over games on page ends without breaking.
@@ -104,16 +109,18 @@ def main():
         #print "    End page. Going to next page: " + str(page+1)
         page +=1
 
-  print len(set_of_new_players)
-  print len(set_of_existing_players)
+  #print "starting list of players", set_of_existing_players
+  #print len(set_of_new_players)
+  #print len(set_of_existing_players)
   set_of_new_players = set_of_new_players.difference(set_of_existing_players)
-  print len(set_of_new_players)
+  #print len(set_of_new_players)
+  #print "set of new players found", set_of_new_players
 
-  new_games_outfile = open('list_of_new_games.py', 'w+')
+  new_games_outfile = open('data/list_of_new_games.py', 'w+')
   new_games_outfile.write("list_of_new_games = " + str(list_of_new_games))
   new_games_outfile.close()
   
-  new_players_outfile = open('list_of_new_players.py', 'w+')
+  new_players_outfile = open('data/list_of_new_players.py', 'w+')
   new_players_outfile.write('list_of_new_players = ' + str(set_of_new_players))
   new_players_outfile.close()
 
