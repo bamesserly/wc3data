@@ -1,26 +1,26 @@
 import time
 #import GetListOfGames
-import GetNewTagsAndGames
+from GetNewTagsAndGames import GetNewTagsAndGames
 
 def main():
-  from data.list_of_existing_players import existing_players
-  tags_set_master = Set([existing_players)]
+  from data.list_of_existing_players_short import existing_players
+  tags_set_master = set(existing_players)
 
   tags_total = len(tags_set_master)
   print "Starting with ", tags_total, "players..."
   iterations = 0
 
   # Starting values for our while loop
-  current_tags = Set([ existing_players ])
-  still_finding_new_players = true     # condition to keep looping
+  current_tags = set( existing_players )
+  still_finding_new_tags = True     # condition to keep looping
   t0 = time.time()
   t = time.time()
+  new_tags = set([])
 
   print "Beginning iterative search for new players/games"
   while(still_finding_new_tags):
     PrintStatus(iterations, t0, t)
     t = time.time()
-    iterations++
 
     # Get new_tags from current_tags by looping through the games of each
     # current_tag and adding opponent to a set.
@@ -37,11 +37,16 @@ def main():
       tags_set_master = tags_set_master.union(new_tags)
       # Make the new_tags into the current tags and loop again
       current_tags = new_tags
+      iterations = iterations + 1
+      if iterations  >= 3:
+        print "Stopping search for tags at iteration", iterations
+        still_finding_new_tags = False
 
     # Or if we didn't find any new tags then we're done!
     else:
       print "Done finding new tags"
-      still_finding_new_tags = false
+      still_finding_new_tags = False
+
 
   PrintStatus(iterations, t0, t)
 
