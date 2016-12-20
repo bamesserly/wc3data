@@ -1,7 +1,11 @@
-*list*
+bnet/
+tyler/
+data/
+archive/
 *dict*
 *.png
 *cache*
 *.csv*
 *.txt
 *.out
+test*
