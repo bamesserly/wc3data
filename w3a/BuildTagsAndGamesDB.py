@@ -18,8 +18,9 @@ def main():
   new_tags = set([])
 
   print "Beginning iterative search for new players/games"
+  print "Current time", time.time()
   while(still_finding_new_tags):
-    PrintStatus(iterations, t0, t)
+    PrintStatus(iterations, t0, t, len(current_tags))
     t = time.time()
 
     # Get new_tags from current_tags by looping through the games of each
@@ -48,12 +49,14 @@ def main():
       still_finding_new_tags = False
 
 
-  PrintStatus(iterations, t0, t)
+  PrintStatus(iterations, t0, t, len(current_tags))
+  print "Current time", time.time()
 
-def PrintStatus(iterations, t0, t):
+def PrintStatus(iterations, t0, t, n_tags):
     print "  Iteration # ", iterations, " of building player/game database."
     print "    Time elapsed in last iteration: ", time.time() - t, "."
     print "    Total time elapsed: ", time.time() - t0, "."
+    print "    Found", n_tags, "new tags in last iteration."
 
 if __name__ == "__main__":
   main()
