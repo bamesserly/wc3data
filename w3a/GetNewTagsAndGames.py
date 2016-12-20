@@ -15,6 +15,7 @@ from shutil import copy
 game_fields = ['date_time', 'winning_player','player1_name','player2_name']
 
 def GetNewTagsAndGames(tags):
+  print "      Looping over tags..."
   t0 = time.time()
   tags_analyzed = 0
   games2013 = []
@@ -25,7 +26,7 @@ def GetNewTagsAndGames(tags):
   set_of_new_tags = set([])
   for t in tags:
     tags_analyzed += 1
-    if tags_analyzed % 5 == 0:
+    if tags_analyzed % 10 == 0:
       print "      ==", tags_analyzed, " tags analyzed"
       t1 = time.time()
       print "      ==time elapsed", t1-t0
@@ -93,7 +94,7 @@ def GetNewTagsAndGames(tags):
         #print "    End page. Going to next page: " + str(page+1)
         page += 1
 
-    print "      tag =", t, n_new_games_found, "- games found"
+    print "       ", t, "--", n_new_games_found, "games found"
 
   ################
   ## Games Stuff #
@@ -103,6 +104,7 @@ def GetNewTagsAndGames(tags):
   SaveNewGames(games2015, "data/games2015.py", "games")
   SaveNewGames(games2016, "data/games2016.py", "games")
   SaveNewGames(games2017, "data/games2017.py", "games")
+  
   
   ###############
   ## Tags Stuff #
@@ -168,7 +170,7 @@ def MakeNewGameDict(tag, game_results):
 
 def SaveNewGames( new_games, data_file, object_name ):
   if not new_games:
-    print "No games for", data_file
+    print "      No games for", data_file, "during this iteration."
     return
 
   # Read in file with importlib a la the 
