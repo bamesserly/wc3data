@@ -5,13 +5,19 @@ from GetNewTagsAndGames import GetNewTagsAndGames
 def main():
   from data.list_of_existing_players_short import existing_players
   tags_set_master = set(existing_players)
+  from data.newest_tags import newest_players
 
   tags_total = len(tags_set_master)
-  print "Starting with ", tags_total, "players..."
+  print "Master list has ", tags_total, "tags..."
   iterations = 0
 
   # Starting values for our while loop
-  current_tags = set( existing_players )
+  #current_tags = set( existing_players )
+  current_tags = set( newest_players )
+  n_tags_first_iteration = len(current_tags)
+  print "Of those", tags_total, ",", n_tags_first_iteration, "are new."
+  print "Looping over", n_tags_first_iteration, "."
+
   still_finding_new_tags = True     # condition to keep looping
   t0 = time.time()
   t = time.time()
@@ -35,13 +41,13 @@ def main():
 
     if new_tags:
       # Add the new tags to the master tag list
-      tags_set_master = tags_set_master.union(new_tags)
+      #tags_set_master = tags_set_master.union(new_tags) #this actually isn't used. We save in GetNewTagsAndGames.
       # Make the new_tags into the current tags and loop again
       current_tags = new_tags
       iterations = iterations + 1
-      if iterations  >= 3:
-        print "Stopping search for tags at iteration", iterations
-        still_finding_new_tags = False
+      #if iterations  >= 3:
+      #  print "Stopping search for tags at iteration", iterations
+      #  still_finding_new_tags = False
 
     # Or if we didn't find any new tags then we're done!
     else:
@@ -51,6 +57,7 @@ def main():
 
   PrintStatus(iterations, t0, t, len(current_tags))
   print "Current time", time.time()
+  print "...I guess we're all done. Nice."
 
 def PrintStatus(iterations, t0, t, n_tags):
     print "  Iteration # ", iterations, " of building player/game database."
