@@ -25,13 +25,14 @@ def GetNewTagsAndGames(tags):
   games2017 = []
   set_of_new_tags = set([])
   for t in tags:
+    time.sleep(1.)
     tags_analyzed += 1
-    if tags_analyzed % 10 == 0:
+    if tags_analyzed % 25 == 0:
       print "      ==", tags_analyzed, " tags analyzed"
       t1 = time.time()
-      print "      ==time elapsed", t1-t0
-      print "      ==new tags found", len(set_of_new_tags)
-      print "      ==number of new games found by last tag", n_new_games_found
+      print "      ==time elapsed during this iteration", t1-t0
+      print "      ==new tags list length", len(set_of_new_tags)
+      #print "      ==number of new games found by last tag", n_new_games_found
 
     #Some variables for this tag
     page = 0
@@ -40,6 +41,7 @@ def GetNewTagsAndGames(tags):
 
     # keep incrementing games and pages until get to a page with no game data
     while (keep_searching_for_games):
+      #time.sleep(1.)
       url = "http://tft.w3arena.net/profile/{0}/?p={1}".format(t, page)
       #t2 = time.time()
       r = requests.get(url)
@@ -66,11 +68,11 @@ def GetNewTagsAndGames(tags):
           continue
 
         #we've found a new game
-        tags, game_dict = MakeNewGameDict(t, game_results)
+        players, game_dict = MakeNewGameDict(t, game_results)
         n_new_games_found += 1
 
         #add any new players the lists.
-        set_of_new_tags.update(tags)
+        set_of_new_tags.update(players)
 
         #add each game to a year-specific list
         gtime = datetime.datetime.strptime(game_dict['date_time'], "%d-%m-%Y %H:%M")
@@ -96,15 +98,6 @@ def GetNewTagsAndGames(tags):
 
     print "       ", t, "--", n_new_games_found, "games found"
 
-  ################
-  ## Games Stuff #
-  ################
-  SaveNewGames(games2013, "data/games2013.py", "games")
-  SaveNewGames(games2014, "data/games2014.py", "games")
-  SaveNewGames(games2015, "data/games2015.py", "games")
-  SaveNewGames(games2016, "data/games2016.py", "games")
-  SaveNewGames(games2017, "data/games2017.py", "games")
-  
   
   ###############
   ## Tags Stuff #
@@ -128,6 +121,15 @@ def GetNewTagsAndGames(tags):
   updated_tags_file.write("existing_players = " + str(set_of_existing_tags))
   updated_tags_file.close()
 
+  ################
+  ## Games Stuff #
+  ################
+  SaveNewGames(games2013, "data/games2013.py", "games")
+  SaveNewGames(games2014, "data/games2014.py", "games")
+  SaveNewGames(games2015, "data/games2015.py", "games")
+  SaveNewGames(games2016, "data/games2016.py", "games")
+  SaveNewGames(games2017, "data/games2017.py", "games")
+  
   return return_tags
 
 def BackUp(path):
@@ -188,10 +190,10 @@ def SaveNewGames( new_games, data_file, object_name ):
   #                           tuple(item.items()) for item in list_of_games)]
   list_of_games = [dict(t) for t in set([tuple(d.items()) for d in list_of_games])]
 
-  # Back up the old tag list
+  # Back up the old game list
   BackUp(data_file)
 
-  # Save the new tag list
+  # Save the new comprehensive game list
   updated_games_file = open(data_file, 'w+')
   updated_games_file.write("games = " + str(list_of_games))
   updated_games_file.close()
