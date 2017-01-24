@@ -20,8 +20,9 @@ progress_notifier = []
 game_fields = ['date_time', 'winning_player','player1_name','player2_name']
 
 def main():
-  from data.list_of_existing_players import existing_players
-  tags_total = len(existing_players)
+  from data.dict_of_elos import dict_of_elos
+  set_of_existing_players = set(list(dict_of_elos.keys()))
+  tags_total = len(set_of_existing_players)
   print "Analyzing ", tags_total, "players..."
 
   list_of_new_games = []
@@ -33,10 +34,11 @@ def main():
 
   # loop existing players
   # big speed gain by not looping over the dict
-  for tag in existing_players:
+  for tag in set_of_existing_players:
     tags_analyzed += 1
-    if tags_analyzed % 100 == 0:
+    if tags_analyzed % 50 == 0:
       print tags_analyzed, "tags analyzed"
+      #print "new games found before last scan =", missed_games
       t1 = time.time()
       print "     time elapsed", t1-t0
       #print "     scrape time", scrape_time
