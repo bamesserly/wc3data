@@ -1,9 +1,8 @@
 import time
-#import GetListOfGames
 from GetNewTagsAndGames import GetNewTagsAndGames
 
 def main():
-  from data.list_of_existing_players_short import existing_players
+  from data.list_of_existing_players import existing_players
   tags_set_master = set(existing_players)
   from data.newest_tags import newest_players
 
