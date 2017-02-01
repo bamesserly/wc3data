@@ -1,50 +1,46 @@
 import operator
 import numpy as np
-import csv
-from datetime import date
 import datetime
 import time
 import os
+from datetime import date
 from shutil import copy
 
-K_FACTOR_BURST = 100
-K_FACTOR_EARLY = 48
-K_FACTOR_MID   = 36
-K_FACTOR_LATE  = 24
+import Utils
+
+from Constants import K_FACTOR_BURST, K_FACTOR_EARLY
+from Constants import K_FACTOR_LATE,  K_FACTOR_MID  
+from Constants import STARTING_ELO_CONST
+
+from Constants import all_games_file,   all_games_container   #input
+from Constants import all_tags_file,    all_tags_container    #output
 
 # player_dictionary format: 
 # {'playerXname': {player_dictionary}, 'playerYname' : {player_dictionary}, ...}
 
-def main():
+def CalculateElo():
+  print "Entering CalculateElo()"
 
-  from data.games2017 import games
-  #from data.testgames import games
+  games = Utils.load_data(all_games_file, all_games_container)
 
-  # Consolodate all games
-  #games = list_of_games
-  print(str(len(games)) + " games imported. Refine and sort by date...")
+  print "  Games imported",len(games), "Refine and sort by date..."
 
-  # Remove duplicates, remove games with a 'missing player'
-  games = [dict(t) for t in set([tuple(d.items()) for d in games])]
+  games = Utils.remove_duplicates(games)
 
-  # sort list of games by date
+  # sort by date
   games = sorted(games, key=lambda k: 
       datetime.datetime.strptime(k['date_time'], '%d-%m-%Y %H:%M'))  
  
-  print "after removing duplicates..."
-  print "length of list of games = " + str(len(games))
+  print "  After removing duplicates..."
+  print "  Length of list of games =",len(games)
 
-  #print games
-
-  from data.player_info import player_info
-  player_dictionaries = player_info
-  #player_dictionaries = {}
+  all_tags = {}
   empty_player_counter = 0
   for g in games:
-    starting_elo = 1500.
-    winner = g['winning_player']
-    player1 = g['player1_name']
-    player2 = g['player2_name']
+    starting_elo   = STARTING_ELO_CONST
+    winner         = g['winning_player']
+    player1        = g['player1_name']
+    player2        = g['player2_name']
     game_date_time = g['date_time']
     game_date_time = time.strftime("%Y-%m-%d %H:%M", time.strptime(game_date_time,"%d-%m-%Y %H:%M"))
 
@@ -52,40 +48,49 @@ def main():
       empty_player_counter += 1
       continue
 
-    if not player1 in player_dictionaries:
-      player_dictionaries[player1] = {'tag':player1, 'elo':starting_elo, 
-                                      'ngames':0,'wins':0,'losses':0,'winrate':0., 
-                                      'most_recent_game_time': game_date_time}
-    elif (game_time(game_date_time) < LGOR(player_dictionaries[player1])):
-      print player_dictionaries[player1]
-      print game_time(game_date_time)
-      raise Exception("P1'S MOST RECENT GAME IS AFTER CURRENT GAME")
+    if not player1 in all_tags:
+      all_tags[player1] = {'tag'                  : player1, 
+                           'elo'                  : starting_elo,
+                           'ngames'               : 0,       
+                           'wins'                 : 0, 
+                           'losses'               : 0,       
+                           'winrate'              : 0., 
+                           'most_recent_game_time': game_date_time
+                          }
 
-    if not player2 in player_dictionaries:
-      player_dictionaries[player2] = {'tag':player2, 'elo':starting_elo,
-                                      'ngames':0,'wins':0,'losses':0,'winrate':0.,
-                                      'most_recent_game_time': game_date_time}
-    elif (game_time(game_date_time) < LGOR(player_dictionaries[player2])):
-      raise Exception("P2'S MOST RECENT GAME IS AFTER CURRENT GAME")
+    #elif (game_time(game_date_time) < LGOR(all_tags[player1])):
+    #  raise Exception("P1'S MOST RECENT GAME IS AFTER CURRENT GAME")
 
-    (new_player1_elo, new_player2_elo) = calculate_new_elos(
-        player_dictionaries[player1], player_dictionaries[player2], winner)
+    if not player2 in all_tags:
+      all_tags[player2] = {'tag'                  : player2,
+                           'elo'                  : starting_elo,
+                           'ngames'               : 0,
+                           'wins'                 : 0,
+                           'losses'               : 0,
+                           'winrate'              : 0.,
+                           'most_recent_game_time': game_date_time
+                          }
 
-    player_dictionaries[player1]['elo'] = round((new_player1_elo),3)
-    player_dictionaries[player2]['elo'] = round((new_player2_elo),3)
+    #elif (game_time(game_date_time) < LGOR(all_tags[player2])):
+    #  raise Exception("P2'S MOST RECENT GAME IS AFTER CURRENT GAME")
 
-    adjust_W_L(player_dictionaries[player1],player_dictionaries[player2],winner)
+    (new_player1_elo, new_player2_elo) = calculate_new_elos( all_tags[player1], 
+                                                             all_tags[player2], 
+                                                             winner )
+
+    all_tags[player1]['elo'] = round((new_player1_elo),3)
+    all_tags[player2]['elo'] = round((new_player2_elo),3)
+
+    adjust_W_L( all_tags[player1], all_tags[player2], winner)
    
-    player_dictionaries[player1]['most_recent_game_time'] = game_date_time
-    player_dictionaries[player2]['most_recent_game_time'] = game_date_time
+    all_tags[player1]['most_recent_game_time'] = game_date_time
+    all_tags[player2]['most_recent_game_time'] = game_date_time
     
   elo_list = []
   player_dict_list = []
-  for p in player_dictionaries:
-    elo_list.append(player_dictionaries[p]['elo'])
-    player_dict_list.append(player_dictionaries[p])
-
-  make_elo_spreadsheet(player_dict_list)
+  for p in all_tags:
+    elo_list.append(all_tags[p]['elo'])
+    player_dict_list.append(all_tags[p])
 
   y = int()
   for y in range (100, -1, -10):
@@ -93,23 +98,19 @@ def main():
         interpolation='linear')
     print (str(p) + " = " + str(y) + "th percentile")
 
-  elo_sorted_player_list = sorted(player_dictionaries.items(), 
-      key=operator.itemgetter(1,0), reverse = True)
+  elo_sorted_player_list = sorted( all_tags.items(), 
+                                   key=operator.itemgetter(1,0), 
+                                   reverse = True )
 
-  print "max elo = " + str(elo_sorted_player_list[0]) 
-  print "min elo = " + str(elo_sorted_player_list[-1])
+  print "  max elo =", elo_sorted_player_list[0]
+  print "  min elo =", elo_sorted_player_list[-1]
 
-  print "empty player counter =", empty_player_counter
+  print "  empty player counter =", empty_player_counter
 
-  BackUp('data/player_info.py')
-  player_info_file = open('data/player_info.py', 'w+')
-  player_info_file.write("player_info = " + str(player_dictionaries))
-  player_info_file.close()
+  #Utils.back_up(all_tags_file)
+  Utils.update_file(all_tags_file, all_tags_container, all_tags, 'd')
 
-  BackUp('data/sorted_player_info.py')
-  sorted_player_info_file = open('data/sorted_player_info.py', 'w+')
-  sorted_player_info_file.write("sorted_player_info = " + str(elo_sorted_player_list))
-  sorted_player_info_file.close()
+  print "Exiting CalculateElo()"
 
 def calculate_new_elos(P1dict, P2dict, winner):
   temp_P1_elo = P1dict['elo']
@@ -164,28 +165,6 @@ def set_k_factor(elo, ngames):
 
   return k_factor
 
-def make_elo_spreadsheet(player_dict_list):
-  today = (date.today()).strftime("%y%m%d")
-  spreadsheet_name = "EloSpreadSheet_{0}.csv".format(today)
-  with open(spreadsheet_name, 'w') as csvfile:
-    #header = ['Elos {0}'.format(today)]
-    fieldnames = ['tag', 'elo', 'ngames', 'wins','losses','winrate','most_recent_game_time']
-    writer = csv.DictWriter(csvfile, fieldnames = fieldnames)
-    #writer.writer.writerow(header)
-    writer.writer.writerow(fieldnames)
-    X = [writer.writerow(dict) for dict in player_dict_list]
-
-def BackUp(path):
-  i = 0
-  while (i<100):
-    if not os.path.exists(path + '{0}'.format(i)):
-      new_backup = path + '{0}'.format(i)
-      #print 'Number of player list backups = ', i
-      #shutil.copy(path, new_backup)
-      copy(path, new_backup)
-      break
-    i += 1
-
 def LGOR(d):
   g = d['most_recent_game_time']
   return datetime.datetime.strptime(g,'%Y-%m-%d %H:%M')
@@ -194,4 +173,4 @@ def game_time(g):
   return datetime.datetime.strptime(g,'%Y-%m-%d %H:%M')
 
 if __name__ == "__main__":
-  main()
+  CalculateElo()
