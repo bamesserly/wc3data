@@ -18,6 +18,8 @@ def UpdateActiveTags():
   #active_tags  = Utils.load_data(active_tags_file,  active_tags_container)
   #retired_tags = Utils.load_data(retired_tags_file, retired_tags_container)
   seed_tags    = {} #write this fresh every time
+  active_tags  = {}
+  retired_tags = {}
 
   retirement_time = (datetime.datetime.today() + 
                                  relativedelta(months=-retirement_cutoff_months))

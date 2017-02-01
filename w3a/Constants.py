@@ -1,4 +1,5 @@
 import datetime
+DEBUG = False
 
 # Update the games and tags, don't build from scratch
 update = True
@@ -16,8 +17,7 @@ earliest_time = datetime.datetime.strptime(earliest_time,'%d-%m-%Y %H:%M')
 # UpdateInactiveAccounts consts
 force_retirement = False
 retirement_cutoff_months = 6
-seed_cutoff_days = 7
-DEBUG = False
+seed_cutoff_days = 10
 
 ######################################
 # File locations and container names #

@@ -1,42 +1,56 @@
 import time
 import Utils
-from GetNewTagsAndGames import LoopTags
+from LoopTags import LoopTags
+from Constants import update, build, DEBUG
 
-#input
-input_file = "data/active_tags_info.py"
-container  = "active_tags"               # Can be list or dict of tags
-tags_are_active = True                   # Begin with confirmed active tags
+#from Constants import active_tags_file, active_tags_container #input
+from Constants import seed_tags_file,    seed_tags_container  #input
+from Constants import all_games_file,    all_games_container  #output
 
-# Build:  ignore any existing tag info and get ALL games
-# Update: refer to existing tag info to only get new games.
-update = True
-build = not update
+def GetGames():
+  print "Entering GetGames()" 
+    
+  ##################################################################
+  # INPUT: seed_tags are seed from which we search for new games   #
+  ##################################################################
+  tags = Utils.load_data(seed_tags_file, seed_tags_container)
 
-def main():
-  # Input tags
-  tags = Utils.load_data(input_file, container)
+  if DEBUG:
+    tags = list(tags)
+    del tags[5:]
+
   tags = set(tags) #remove dupes
+  
+  ##################################################################
+  # Master tag list: as we collect tags, check them against this
+  # list, keeping only the new ones as seeds for the next iteration
+  ##################################################################
+  # master list
   master_tags_set = tags
+  #all_tags = Utils.load_data(all_tags_file, all_tags_container)
 
-  # Output games
+  ##################################################################
+  # OUTPUT: new games, a list of dicts
+  ##################################################################
   output_games = []
 
-  # Recursive search
-  new_tags = tags    # Keep searching until no new_tags found
+  ##################################################################
+  # Recursive loop to find new games
+  ##################################################################
 
+  new_tags = tags
   iterations = 0
-  t0 = time.time()
-  t  = time.time()
-  print "Beginning iterative search for new games. Using", len(new_tags), "seed tags."
-  print "Current time", time.time()
+  t0 = t = time.time()
+  print "  Beginning iterative search for new games. Using", len(new_tags), "seed tags."
+  print "  Current time", time.time()
+  new_games = True
 
-  while(new_tags):
+  while(new_tags and new_games):
     iterations += 1
     t = time.time()
 
     # Loop tags: retrieve games, opponents
-    new_games, new_tags = LoopTags(new_tags, tags_are_active, update)
-    tags_are_active = False
+    new_games, new_tags = LoopTags(new_tags, build)
 
     # Manage new tags
     new_tags = new_tags.difference(master_tags_set) # only newest tags for next loop
@@ -44,38 +58,30 @@ def main():
 
     # Manage new games
     output_games.extend(new_games)
-    output_games = Utils.remove_duplicates(output_games)  
+    output_games = Utils.remove_duplicates(output_games)
                                                     # will be many dupes so
                                                     # remove for each iteration 
 
-    Utils.print_status(iterations, t0, t, len(new_tags))
+    print_status(iterations, t0, t, len(new_tags))
+    
+    if DEBUG:
+      break
 
-  print "Current time", time.time()
-  print "All done iteratively looping tags."
+  print "  Current time", time.time()
+  print "  All done iteratively looping tags."
 
-  ##################################################
-  # Finalize: Save games to their respective files #
-  ##################################################
-  output_games = Utils.remove_duplicates(output_games)    # doesn't hurt?
-  games2015 = []
-  games2016 = []
-  games2017 = []
-  for g in output_games:
-    gtime = datetime.datetime.strptime(g['date_time'], "%d-%m-%Y %H:%M")
-    year = gtime.year
-    if   year <= 2015:
-      games2015.append(g)
-    elif year == 2016:
-      games2016.append(g)
-    elif year == 2017:
-      games2017.append(g)
-    else:
-      print "Time to create a 2018 games list!"
+  # if we're updating, save now. If building, we already saved in the loop
+  #if update:
+  #  output_games = Utils.remove_duplicates(output_games)
+  #  Utils.update_file(all_games_file, all_games_container, output_games, 'l_d')
 
-  '''
-  Utils.save_games(games2015, "data/games2015.py", "games")
-  Utils.save_games(games2016, "data/games2016.py", "games")
-  Utils.save_games(games2017, "data/games2017.py", "games")
-  '''
+  print "Exiting GetGames()"
+
+def print_status(iterations, t0, t, n_tags):
+    print "  Finished iteration", iterations, "of building/updating game database"
+    print "    Time elapsed in this iteration:", time.time() - t
+    print "    Total time elapsed:            ", time.time() - t0
+    print "   ", n_tags, "new tags found in this iteration."
+
 if __name__ == "__main__":
-  main()
+  GetGames()
