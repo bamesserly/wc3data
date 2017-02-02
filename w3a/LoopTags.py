@@ -6,8 +6,6 @@ import time
 import Utils
 
 # need for get_LGOR
-#from data.active_tags_info  import active_tags
-#from data.retired_tags_info import retired_tags
 from data.all_tags_info import all_tags
 
 from Constants import all_tags_list_file, all_tags_list_container #input
@@ -100,7 +98,7 @@ def LoopTags(tags, build):
   #  #Utils.back_up(all_games_file)
   #  #Utils.back_up(all_tags_list_file)
 
-  #  Utils.update_file(all_games_file, all_games_container, found_games, 'd')
+  #  Utils.update_file(all_games_file, all_games_container, found_games, 'l_d')
   #  Utils.update_file(all_tags_list_file,  all_tags_list_container,  found_tags, 'l')
 
   # Until we're running more smoothly, we need to save on every iteration
@@ -112,7 +110,7 @@ def LoopTags(tags, build):
 
 def get_LGOR(t, build):
   if build:
-    LGOR = earliest_game
+    LGOR = earliest_time
 
   # This is slow, but alternatives not great either. 
   elif t in all_tags:
@@ -121,7 +119,7 @@ def get_LGOR(t, build):
 
   # New account
   else:
-    LGOR = earliest_game
+    LGOR = earliest_time
 
   return LGOR
 

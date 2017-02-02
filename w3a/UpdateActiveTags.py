@@ -15,8 +15,6 @@ from Constants import seed_tags_file,    seed_tags_container
 def UpdateActiveTags():
   print "Entering UpdateActiveTags()"
   all_tags     = Utils.load_data(all_tags_file,     all_tags_container)
-  #active_tags  = Utils.load_data(active_tags_file,  active_tags_container)
-  #retired_tags = Utils.load_data(retired_tags_file, retired_tags_container)
   seed_tags    = {} #write this fresh every time
   active_tags  = {}
   retired_tags = {}
@@ -29,20 +27,16 @@ def UpdateActiveTags():
   print "  Force retirement is", force_retirement
   print "  Seed accounts have played a game in the last", seed_cutoff_days, "days:", seed_time
 
-  newly_retired_count = 0
-  reactivated_count   = 0
-  LGOR_tot = 0
-
   print "  Number of tags total:", len(all_tags),"\n"
   for tag in all_tags:
     t = all_tags[tag]
     
     # Seed
-    if LGOR(t) > seed_time:
+    if LGOR(t) > seed_time :
       seed_tags[tag] = t
 
     # Retire
-    if LGOR(t) < retirement_time:
+    if LGOR(t) < retirement_time or t['ngames'] < 10:
       if DEBUG:
         print "    Retiring tag", tag, "with LGOR", LGOR(t)
 
@@ -62,9 +56,6 @@ def UpdateActiveTags():
   print "\n  Number of retired accounts", len(retired_tags)
   print "  Number of active accounts", len(active_tags)
   print "  Number of seed accounts", len(seed_tags)
-
-  print "\n  Number of newly retired accounts", newly_retired_count
-  print "  Number of reactivated accounts", reactivated_count
 
   print "\n  Saving..."
   Utils.overwrite_file(active_tags_file, active_tags_container, active_tags)

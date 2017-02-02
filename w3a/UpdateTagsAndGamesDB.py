@@ -11,9 +11,8 @@ from bs4 import BeautifulSoup
 from datetime import date
 import datetime
 import time
-#new_games_temp = open('new_games.txt', 'w+')
 
-date_of_last_scan = '19-06-2016 00:00'
+#date_of_last_scan = '19-06-2016 00:00'
 date_of_last_scan = datetime.datetime.strptime(date_of_last_scan,'%d-%m-%Y %H:%M')
 part_list_of_games = []
 progress_notifier = []

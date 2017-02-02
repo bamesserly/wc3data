@@ -3,7 +3,6 @@ import Utils
 from LoopTags import LoopTags
 from Constants import update, build, DEBUG
 
-#from Constants import active_tags_file, active_tags_container #input
 from Constants import seed_tags_file,    seed_tags_container  #input
 from Constants import all_games_file,    all_games_container  #output
 

@@ -12,9 +12,9 @@ from Constants        import active_tags_file, active_tags_container
 from Constants        import all_tags_file,    all_tags_container
 
 def main():
-  print "##################################################################################"
+  print "###########################################################################################################"
   print "                BEGINNING DO W3A ELO for", datetime.datetime.today()
-  print "##################################################################################"
+  print "###########################################################################################################"
   GetGames()         # Get new games played since the last update
                      # input:  active_tags_info.py
                      # output: all_games.py
