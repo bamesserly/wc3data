@@ -1,16 +1,35 @@
 
 
+return_games = []
+
 from data.games2015 import games
+return_games = return_games + games
+from data.games2016 import games
+return_games = return_games + games
+from data.games2017 import games
+return_games = return_games + games
+
+'''
 recent = games
 print len(recent),"games imported from 2015."
 
-from data.games2016 import games
+return_games += recent
+
 recent = games
 print len(recent),"games imported from 2016."
 
-from data.games2017 import games
+return_games += recent
+
 recent = games
 print len(recent),"games imported from 2017."
+return_games += recent
+'''
+
+print len(return_games),"total games merged"
+
+return_file = open('data/all_games.py', 'w+')
+return_file.write("all_games = " + str(return_games))
+return_file.close()
 
 '''
 from data.games2017_11 import games

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <!-- The label should be the same as the filename without the extension -->
+  <string>com.Ben.W3AElo</string>
+  <!-- Specify how to run your program here -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/local/bin/python</string>
+    <string>/Users/Ben/Home/wc3data/w3a/DoW3AElo.py</string>
+    <!--string>/Users/Ben/Desktop/launch.sh</string> -->
+  </array>
+  <!-- Run every day at midnight -->
+  <key>StartCalendarInterval</key>
+    <dict>
+      <key>Minute</key>     
+      <integer>59</integer> 
+      <key>Hour</key>
+      <integer>11</integer>
+      <!-- <key>Weekday</key>   -->
+      <!-- <integer>7</integer> -->
+    </dict>
+  <key>StandardOutPath</key>
+  <string>/Users/Ben/Desktop/launchstdout.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/Ben/Desktop/launchstderr.log</string>
+</dict>
+</plist>
+
+<!-- Run every 30 sec -->
+<!--key>StartInterval</key> -->
+<!--integer>30</integer> this is in seconds-->

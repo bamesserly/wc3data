@@ -16,8 +16,8 @@ earliest_time = datetime.datetime.strptime(earliest_time,'%d-%m-%Y %H:%M')
 
 # UpdateInactiveAccounts consts
 force_retirement = False
-retirement_cutoff_months = 6
-seed_cutoff_days = 10
+retirement_cutoff_months = 3
+seed_cutoff_days = 20
 
 ######################################
 # File locations and container names #
