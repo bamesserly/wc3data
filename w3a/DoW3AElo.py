@@ -17,6 +17,10 @@ def main():
   print "###########################################################################################################"
   print "                BEGINNING DO W3A ELO for", datetime.datetime.today()
   print "###########################################################################################################"
+  UpdateActiveTags() # Retire inactive accounts.
+                     # input:  all_tags_info.py
+                     # output: active_tags_info.py and inactive_tags_info.py
+
   GetGames()         # Get new games played since the last update
                      # input:  active_tags_info.py
                      # output: all_games.py
