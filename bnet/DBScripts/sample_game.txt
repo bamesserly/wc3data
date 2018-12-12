@@ -1,0 +1,35 @@
+0
+Game Date:   4/23/2012 8:40:32 AM  EDT
+Map:          Frostsabre
+Game Type:   Solo
+Game Length: 5 minutes
+Player Name Race LVL XP Result XP Change
+prugio-7  Human Human
+1
+0 Win 159
+cutter-edge2  Human Human
+8
+1,866 Loss -17
+Overview:
+Teams            Unit Score Heroes Score Resource Score Total Score
+prugio-7     5,610      3,200        2,970          11,780
+cutter-edge2 0          0            0              0
+Units:
+Teams Units Produced Units Killed Buildings Produced Buildings Razed
+Largest Army
+prugio-7 18 4 13 0 20
+cutter-edge2 0 0 0 0 0
+Heroes:
+Teams Heroes Used Heroes Killed Items Obtained Mercenaries Hired
+Experience Gained
+prugio-7
+Archmage  2
+0 1 0 320
+cutter-edge2
+0 0 0 0
+Resources:
+Teams Gold Mined Lumber Harvested Resources Traded Tech Percentage Gold
+Lost to Upkeep
+prugio-7 2,230 740 0 / 0 0 % 0
+cutter-edge2 0 0 0 / 0 0 % 0
+Return to the Main Ladder Page
