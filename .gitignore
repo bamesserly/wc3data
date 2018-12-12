@@ -12,6 +12,7 @@ test*
 Dropbox/
 *.md
 w3a/dbox_token.py
+*.db
 # OS generated files #
 ######################
 .DS_Store
