@@ -11,6 +11,7 @@ For an introduction to the Elo system, see its [wiki][2].
 
 ### Results and application
 Up-to-date player ratings for the w3a server can be found on this [spreadsheet][3]. [Launch post][4].
+
 EDIT: With W3A's decline, this page is no longer updated.
 
 For results and applications of earlier versions of this code, see tmahlstrom's posts on the following topics: 
